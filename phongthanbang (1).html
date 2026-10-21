@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Tô Màu Bí Mật</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f4ff;--surface:#ffffff;--surface2:#e8eeff;--fg:#1a1d2e;--fg2:#5a5f7e;
+  --accent:#4f63e7;--accent2:#7c3aed;--hit:#e63946;--ok:#22c55e;--gold:#f59e0b;
+  --border:#d1d9f0;--shadow:0 2px 12px rgba(79,99,231,.12);--radius:14px;
+  --font-game:'Baloo 2',system-ui,sans-serif;--font-ui:'Nunito',system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1120;--surface:#1a1d2e;--surface2:#252840;--fg:#e8ecff;--fg2:#8890b8;
+    --accent:#6577ff;--accent2:#9d6bff;--border:#2d3258;--shadow:0 2px 12px rgba(0,0,0,.4);
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--fg);font-family:var(--font-ui)}
+
+/* ---------- SCREENS ---------- */
+.screen{
+  display:none;position:fixed;inset:0;flex-direction:column;background:var(--bg);overflow-y:auto;overflow-x:hidden;
+  padding:max(4px,env(safe-area-inset-top,0px)) max(4px,env(safe-area-inset-right,0px)) max(4px,env(safe-area-inset-bottom,0px)) max(4px,env(safe-area-inset-left,0px));
+  -webkit-overflow-scrolling:touch;
+}
+.screen.active{display:flex}
+.screen>*{flex-shrink:0}
+
+/* ---------- WELCOME ---------- */
+#screen-welcome{padding:20px 18px}
+#screen-welcome .wrap{margin:auto;display:flex;flex-direction:column;align-items:center;gap:20px;width:100%;max-width:400px;text-align:center}
+.logo-sub{margin:0;font-size:13px;color:var(--fg2);letter-spacing:.06em;text-transform:uppercase;font-weight:800}
+.logo-title{
+  margin:0;font-family:var(--font-game);font-weight:800;font-size:clamp(34px,11vw,58px);line-height:1.05;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.card{background:var(--surface);border-radius:var(--radius);padding:22px;width:100%;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}
+.field-label{font-size:12px;font-weight:800;color:var(--fg2);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;text-align:left}
+.name-input{
+  width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;
+  font:700 16px var(--font-ui);background:var(--bg);color:var(--fg);outline:none;
+}
+.name-input:focus{border-color:var(--accent)}
+.btn-primary{
+  width:100%;padding:14px;border:none;border-radius:12px;cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+  font:800 17px var(--font-ui);
+}
+.btn-primary:disabled{opacity:.5;cursor:default}
+.btn-primary:active{transform:scale(.98)}
+.btn-ghost{
+  width:100%;padding:12px;font-size:15px;background:var(--surface);color:var(--fg);
+  border:2px solid var(--border);border-radius:12px;cursor:pointer;font-weight:800;font-family:var(--font-ui);
+}
+
+/* ---------- GAME TOPBAR ---------- */
+.topbar{display:flex;align-items:center;gap:6px;height:34px;flex-shrink:0}
+.spacer{flex:1}
+.hud{
+  display:flex;gap:8px;align-items:center;background:var(--surface);border:1.5px solid var(--border);
+  border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.hud .timer{color:var(--accent);min-width:98px}
+.chip{
+  height:28px;min-width:28px;padding:0 10px;border-radius:999px;border:1.5px solid var(--border);
+  background:var(--surface);color:var(--fg);font:800 12px var(--font-ui);cursor:pointer;white-space:nowrap;
+}
+.chip.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip.icon{padding:0;width:28px;font-size:13px}
+.legend{font-size:11px;font-weight:800;color:var(--fg2);display:flex;gap:8px;align-items:center;white-space:nowrap}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:3px}
+
+/* ---------- GRID STAGE ---------- */
+.stage{flex:1 1 auto;min-height:0;width:100%;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0}
+.grid{position:relative;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.cell{
+  position:absolute;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);
+  color:var(--fg2);display:flex;align-items:center;justify-content:center;font-weight:800;line-height:1;
+  border-radius:3px;white-space:nowrap;overflow:hidden;cursor:pointer;
+}
+.cell.colored{background:var(--hit);border-color:var(--hit);color:#fff}
+.cell.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.cell.missed{border:2px dashed var(--gold);color:var(--gold);background:var(--surface)}
+
+/* ---------- ORIENTATION (không còn bắt buộc) ---------- */
+#orient{
+  display:none;position:fixed;inset:0;z-index:50;background:var(--bg);flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;
+}
+#orient.show{display:flex}
+#orient .big{font-size:56px}
+
+/* ---------- RESULT ---------- */
+#screen-result{align-items:center;padding:14px 14px 24px;gap:12px}
+.col{width:100%;max-width:460px;display:flex;flex-direction:column;gap:12px}
+.hero{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);text-align:center}
+.r-emoji{font-size:46px;line-height:1}
+.r-name{font-family:var(--font-game);font-size:22px;font-weight:800;margin:4px 0 0}
+.r-score{
+  font-family:var(--font-game);font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.r-meta{font-size:14px;color:var(--fg2);font-weight:700}
+.btn-row{display:flex;gap:10px}
+.btn-row>*{flex:1}
+.btn-row .btn-primary,.btn-row .btn-ghost{padding:12px;font-size:15px}
+.rotate-tip{
+  display:none;font-size:12px;font-weight:800;color:var(--fg2);text-align:center;
+  background:var(--surface2);border-radius:10px;padding:8px 10px;
+}
+@media (orientation:landscape) and (max-height:500px){
+  .rotate-tip{display:block}
+}
+.lb{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.lb-head{
+  padding:12px 16px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+  font-family:var(--font-game);font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:space-between;
+}
+.lb-head button{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:4px 10px;font:800 12px var(--font-ui);cursor:pointer}
+.lb-row{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);font-size:14px}
+.lb-row:last-child{border-bottom:none}
+.lb-row.me{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.lb-rank{width:30px;text-align:center;font-weight:800;flex-shrink:0}
+.lb-name{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.lb-time{font-size:12px;color:var(--fg2);font-weight:700;font-variant-numeric:tabular-nums;flex-shrink:0}
+.lb-score{font-family:var(--font-game);font-weight:800;font-size:17px;color:var(--accent);flex-shrink:0}
+.lb-more button{width:100%;padding:12px;border:none;background:var(--surface2);color:var(--accent);font:800 14px var(--font-ui);cursor:pointer}
+.muted{padding:18px;text-align:center;color:var(--fg2);font-size:14px;font-weight:700}
+
+/* ---------- MISC ---------- */
+#toast{
+  position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(90px);
+  background:var(--fg);color:var(--bg);padding:9px 18px;border-radius:30px;font-size:13px;font-weight:800;
+  z-index:200;transition:transform .3s;white-space:nowrap;pointer-events:none;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#celebration{position:fixed;inset:0;pointer-events:none;z-index:100;display:none}
+</style>
+</head>
+<body>
+
+<!-- WELCOME -->
+<div id="screen-welcome" class="screen active">
+  <div class="wrap">
+    <p class="logo-sub">Trò chơi học tập</p>
+    <h1 class="logo-title">Tô Màu<br>Bí Mật</h1>
+    <div class="card">
+      <div>
+        <div class="field-label">Tên của bạn</div>
+        <input class="name-input" id="player-name" type="text" placeholder="Nhập tên của bạn..." maxlength="30" autocomplete="off">
+      </div>
+      <button class="btn-primary" id="btn-start" disabled>🎮 Bắt đầu</button>
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="screen">
+  <div class="topbar">
+    <div class="hud">
+      <span>✅ <span id="colored-count">0/40</span></span>
+      <span class="timer">⏱ <span id="timer">00:00.000</span></span>
+    </div>
+    <div class="spacer"></div>
+    <button class="chip icon" id="btn-full" title="Toàn màn hình">⛶</button>
+    <button class="chip primary" id="btn-submit">Nộp</button>
+    <button class="chip icon" id="btn-quit" title="Thoát">✕</button>
+  </div>
+  <div class="stage" id="game-stage"></div>
+</div>
+
+<!-- REVIEW -->
+<div id="screen-review" class="screen">
+  <div class="topbar">
+    <button class="chip" id="btn-back-result">← Kết quả</button>
+    <div class="spacer"></div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--ok)"></span>Đúng</span>
+      <span><span class="sw" style="background:var(--hit)"></span>Sai</span>
+      <span><span class="sw" style="border:2px dashed var(--gold)"></span>Bỏ sót</span>
+    </div>
+  </div>
+  <div class="stage" id="review-stage"></div>
+</div>
+
+<!-- RESULT -->
+<div id="screen-result" class="screen">
+  <div class="col">
+    <div class="hero">
+      <div class="r-emoji" id="r-emoji">🎉</div>
+      <div class="r-name" id="r-name">—</div>
+      <div class="r-score" id="r-score">0 điểm</div>
+      <div class="r-meta" id="r-meta">—</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" id="btn-view-answers">👀 Xem đáp án</button>
+      <button class="btn-ghost" id="btn-play-again">🔄 Chơi lại</button>
+    </div>
+    <div class="rotate-tip">📱 Xoay thẳng điện thoại để xem đầy đủ bảng điểm</div>
+    <div class="lb">
+      <div class="lb-head">
+        <span>🏆 Phong Thần Bảng</span>
+        <button id="btn-refresh">↻ Làm mới</button>
+      </div>
+      <div id="lb-list"><div class="muted">Đang tải...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ORIENTATION (không còn bắt buộc) -->
+<div id="orient">
+  <div class="big">📱</div>
+  <div style="font-size:18px;font-weight:800">Xoay ngang điện thoại</div>
+  <div style="font-size:14px;color:var(--fg2);font-weight:700">Xoay ngang để thấy toàn bộ bức hình. Trò chơi sẽ tự bắt đầu khi bạn xoay.</div>
+  <button class="btn-ghost" id="btn-orient-ok" style="max-width:220px">Vẫn chơi dọc</button>
+</div>
+
+<div id="toast"></div>
+<canvas id="celebration"></canvas>
+
+<script>
+// ================= SUPABASE =================
+const SB_BASE = 'https://ktemeqxxghykxlldzqzk.supabase.co';
+const SB_KEY  = 'sb_publishable_XvZ9HAQ68SZBwh4h-I9YyQ_RXDvaZBc';
+const TABLE   = 'Bảng Phong Thần';
+const TABLE_URL = SB_BASE + '/rest/v1/' + encodeURIComponent(TABLE);
+const SB_HEADERS = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
+
+// ================= GAME DATA =================
+const ans = "CBACCBAA"+"BCBBCACB"+"BAABABCC"+"CBBCCCBB"+"ABBCDCCC";
+const MAX_COLOR = 40;
+const TOP_N = 5;
+
+const L = {
+  D:[[0,0,1,7],[1,0,3,1],[1,6,3,1],[4,1,1,5]],
+  O:[[0,1,1,5],[1,0,3,1],[1,6,3,1],[4,1,1,5]],
+  A:[[0,1,1,6],[4,1,1,6],[1,0,3,1],[1,3,3,1]],
+  N:[[0,0,1,7],[4,0,1,7],[1,1,1,2],[2,3,1,1],[3,4,1,2]],
+  K:[[0,0,1,7],[1,3,2,1],[3,2,1,1],[4,0,1,2],[3,4,1,1],[4,5,1,2]],
+  E:[[0,0,1,7],[1,0,4,1],[1,3,3,1],[1,6,4,1]],
+  T:[[0,0,5,1],[2,1,1,6]]
+};
+
+let seed = 20261020;
+const R = () => {
+  seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+  let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296;
+};
+const ri = n => Math.floor(R() * n);
+
+const W = 43, H = 9;
+let hits = [];
+"DOANKET".split("").forEach((ch, i) => L[ch].forEach(r => hits.push([r[0]+1+i*6, r[1]+1, r[2], r[3]])));
+while (hits.length < 40) {
+  let b = 0;
+  hits.forEach((r, i) => { if (Math.max(r[2], r[3]) > 1 && r[2]*r[3] > (hits[b][2]*hits[b][3] || 0)) b = i; });
+  const [x, y, w, h] = hits[b]; hits.splice(b, 1);
+  if (w >= h) { const a = Math.floor(w/2); hits.push([x,y,a,h],[x+a,y,w-a,h]); }
+  else { const a = Math.floor(h/2); hits.push([x,y,w,a],[x,y+a,w,h-a]); }
+}
+
+const occ = Array.from({length: H}, () => Array(W).fill(0));
+const mark = r => { for (let j = 0; j < r[3]; j++) for (let i = 0; i < r[2]; i++) occ[r[1]+j][r[0]+i] = 1; };
+hits.forEach(mark);
+
+const qs = [...Array(40).keys()].sort(() => R() - .5);
+const CELLS = hits.map((r, i) => ({ r, q: qs[i]+1, hit: true, label: ans[qs[i]] }));
+for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+  if (occ[y][x]) continue;
+  const tw = 1+ri(4), th = 1+ri(3); let done = false;
+  for (let h = th; h >= 1 && !done; h--) for (let w = tw; w >= 1 && !done; w--) {
+    let ok = y+h <= H && x+w <= W;
+    for (let j = 0; j < h && ok; j++) for (let i = 0; i < w; i++) if (occ[y+j][x+i]) { ok = false; break; }
+    if (ok) {
+      const r = [x, y, w, h]; mark(r);
+      const q = 1 + ri(40);
+      const wrong = "ABCD".replace(ans[q-1], "");
+      CELLS.push({ r, q, hit: false, label: wrong[ri(3)] });
+      done = true;
+    }
+  }
+}
+
+// ================= STATE =================
+let playerName = '';
+let colored = new Set();
+let gameActive = false, gameStart = 0, timerId = null;
+let gameWrapper = null, reviewWrapper = null;
+let last = null;
+let allRows = [];
+let showAll = false;
+
+// ================= HELPERS =================
+const $ = id => document.getElementById(id);
+const pad = (n, l = 2) => String(n).padStart(l, '0');
+const fmt = ms => {
+  const m = Math.floor(ms / 60000);
+  const s = Math.floor(ms / 1000) % 60;
+  const x = ms % 1000;
+  return pad(m) + ':' + pad(s) + '.' + pad(x, 3);
+};
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function toast(msg, dur = 2000) {
+  const el = $('toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-' + id));
+}
+
+function makeGrid(stage) {
+  stage.innerHTML = '';
+  const w = document.createElement('div');
+  w.className = 'grid';
+  CELLS.forEach((c, idx) => {
+    const d = document.createElement('div');
+    d.className = 'cell';
+    d.dataset.idx = idx;
+    d.textContent = c.q + c.label;
+    w.appendChild(d);
+  });
+  stage.appendChild(w);
+  return w;
+}
+
+// Lấp đầy khung hình, chỉ chừa viền nhỏ. Cỡ chữ theo tomauv2: U * 0.37
+// Ngang: bảng giữ nguyên hướng. Dọc: xoay 90° để lấp đầy chiều cao, chữ vẫn đứng thẳng.
+function layoutGrid(wrap, stage) {
+  const pad = 2;
+  const aw = stage.clientWidth - pad * 2;
+  const ah = stage.clientHeight - pad * 2;
+  const portrait = innerHeight > innerWidth;
+  const kids = Array.from(wrap.children);
+
+  // Giãn kín toàn bộ khung: mỗi ô có thể rộng/cao khác nhau (Ux, Uy)
+  if (!portrait) {
+    const Ux = aw / W, Uy = ah / H;
+    wrap.style.width = aw + 'px';
+    wrap.style.height = ah + 'px';
+    const fs = Math.max(9, Math.round(Math.min(Ux * 0.42, Uy * 0.5))) + 'px';
+    kids.forEach((d, idx) => {
+      const r = CELLS[idx].r;
+      d.style.left = Math.round(r[0] * Ux) + 'px';
+      d.style.top = Math.round(r[1] * Uy) + 'px';
+      d.style.width = Math.round((r[0] + r[2]) * Ux) - Math.round(r[0] * Ux) + 'px';
+      d.style.height = Math.round((r[1] + r[3]) * Uy) - Math.round(r[1] * Uy) + 'px';
+      d.style.fontSize = fs;
+    });
+  } else {
+    const Ux = aw / H, Uy = ah / W;
+    wrap.style.width = aw + 'px';
+    wrap.style.height = ah + 'px';
+    const fs = Math.max(9, Math.round(Math.min(Ux * 0.42, Uy * 0.5))) + 'px';
+    kids.forEach((d, idx) => {
+      const r = CELLS[idx].r;
+      const x0 = H - r[1] - r[3], y0 = r[0];
+      d.style.left = Math.round(x0 * Ux) + 'px';
+      d.style.top = Math.round(y0 * Uy) + 'px';
+      d.style.width = Math.round((x0 + r[3]) * Ux) - Math.round(x0 * Ux) + 'px';
+      d.style.height = Math.round((y0 + r[2]) * Uy) - Math.round(y0 * Uy) + 'px';
+      d.style.fontSize = fs;
+    });
+  }
+}
+
+function relayout() {
+  if (gameActive && gameWrapper) layoutGrid(gameWrapper, $('game-stage'));
+  if ($('screen-review').classList.contains('active') && reviewWrapper) layoutGrid(reviewWrapper, $('review-stage'));
+}
+
+// ================= WELCOME =================
+const nameInput = $('player-name');
+nameInput.addEventListener('input', () => { $('btn-start').disabled = nameInput.value.trim().length < 2; });
+$('btn-start').onclick = startGame;
+
+// ================= GAME =================
+function startGame() {
+  playerName = nameInput.value.trim();
+  colored.clear();
+  updateHud();
+  showScreen('game');
+  $('timer').textContent = fmt(0);
+  if (innerHeight > innerWidth) {
+    pendingStart = true;
+    $('orient').classList.add('show');
+  } else {
+    beginRound();
+  }
+}
+
+let pendingStart = false;
+function beginRound() {
+  pendingStart = false;
+  $('orient').classList.remove('show');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const stage = $('game-stage');
+    gameWrapper = makeGrid(stage);
+    layoutGrid(gameWrapper, stage);
+    gameWrapper.addEventListener('pointerdown', onGridTap);
+    gameStart = Date.now();
+    gameActive = true;
+    tick();
+    clearInterval(timerId);
+    timerId = setInterval(tick, 33);
+  }));
+}
+
+function onGridTap(e) {
+  const d = e.target.closest('.cell');
+  if (!d || !gameActive) return;
+  e.preventDefault();
+  const i = +d.dataset.idx;
+  if (colored.has(i)) {
+    colored.delete(i);
+    d.classList.remove('colored');
+  } else {
+    if (colored.size >= MAX_COLOR) { toast('Chỉ được tô tối đa 40 ô'); return; }
+    colored.add(i);
+    d.classList.add('colored');
+  }
+  updateHud();
+}
+
+function updateHud() {
+  $('colored-count').textContent = colored.size + '/' + MAX_COLOR;
+}
+
+function tick() {
+  $('timer').textContent = fmt(Date.now() - gameStart);
+}
+
+function tally() {
+  let correct = 0, wrong = 0;
+  CELLS.forEach((c, i) => { if (colored.has(i)) c.hit ? correct++ : wrong++; });
+  return { correct, wrong };
+}
+
+function scoreOf(correct, wrong, timeMs) {
+  return Math.max(0, correct*10 - wrong*5) + Math.max(0, 200 - Math.floor(timeMs/1000));
+}
+
+$('btn-submit').onclick = () => {
+  if (!gameActive) return;
+  if (colored.size < MAX_COLOR && !confirm(`Mới tô ${colored.size}/40 ô. Nộp bài luôn?`)) return;
+  finish();
+};
+
+$('btn-quit').onclick = () => {
+  if (!confirm('Thoát sẽ mất bài đang làm. Bạn có chắc?')) return;
+  clearInterval(timerId); gameActive = false;
+  showScreen('welcome');
+};
+
+function finish() {
+  gameActive = false;
+  clearInterval(timerId);
+  const timeMs = Date.now() - gameStart;
+  const { correct, wrong } = tally();
+  last = { name: playerName, correct, wrong, timeMs, score: scoreOf(correct, wrong, timeMs) };
+  tick();
+  showResult();
+  saveScore();
+}
+
+// ================= RESULT =================
+function showResult() {
+  showScreen('result');
+  const pct = last.correct / 40;
+  $('r-emoji').textContent = pct === 1 ? '🏆' : pct >= .9 ? '🌟' : pct >= .7 ? '🎉' : pct >= .5 ? '👏' : '💪';
+  $('r-name').textContent = playerName;
+  $('r-score').textContent = last.score + ' điểm';
+  $('r-meta').textContent = `✅ ${last.correct} đúng · ❌ ${last.wrong} sai · ⏱ ${fmt(last.timeMs)}`;
+  if (pct >= .8) celebrate();
+  loadLeaderboard();
+}
+
+$('btn-view-answers').onclick = showReview;
+$('btn-play-again').onclick = () => { nameInput.value = playerName; $('btn-start').disabled = playerName.length < 2; showScreen('welcome'); };
+$('btn-refresh').onclick = loadLeaderboard;
+$('btn-back-result').onclick = () => showScreen('result');
+
+function showReview() {
+  showScreen('review');
+  const stage = $('review-stage');
+  reviewWrapper = makeGrid(stage);
+  Array.from(reviewWrapper.children).forEach((d, i) => {
+    const c = CELLS[i], on = colored.has(i);
+    if (c.hit) d.classList.add(on ? 'ok' : 'missed');
+    else if (on) d.classList.add('colored');
+  });
+  layoutGrid(reviewWrapper, stage);
+}
+
+// ================= SUPABASE =================
+async function saveScore() {
+  try {
+    const res = await fetch(TABLE_URL, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, Prefer: 'return=minimal' },
+      body: JSON.stringify({ name: last.name, score: last.score, time: last.timeMs })
+    });
+    if (!res.ok) throw new Error(res.status);
+    loadLeaderboard();
+  } catch (e) {
+    toast('Không lưu được điểm lên máy chủ', 3000);
+  }
+}
+
+async function loadLeaderboard() {
+  const box = $('lb-list');
+  box.innerHTML = '<div class="muted">Đang tải...</div>';
+  try {
+    const url = TABLE_URL + '?select=name,score,time&order=score.desc,time.asc&limit=100';
+    const res = await fetch(url, { headers: SB_HEADERS });
+    if (!res.ok) throw new Error(res.status);
+    allRows = await res.json();
+    showAll = false;
+    renderLeaderboard();
+  } catch (e) {
+    box.innerHTML = '<div class="muted">Không tải được bảng xếp hạng. Kiểm tra lại tên bảng và quyền truy cập.</div>';
+  }
+}
+
+function renderLeaderboard() {
+  const box = $('lb-list');
+  if (!allRows.length) { box.innerHTML = '<div class="muted">Chưa có kết quả nào.</div>'; return; }
+  const rows = showAll ? allRows : allRows.slice(0, TOP_N);
+  box.innerHTML = '';
+  rows.forEach((r, i) => {
+    const row = document.createElement('div');
+    row.className = 'lb-row' + (last && r.name === last.name && r.score === last.score && r.time === last.timeMs ? ' me' : '');
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i+1);
+    row.innerHTML = `
+      <div class="lb-rank">${medal}</div>
+      <div class="lb-name">${esc(r.name)}</div>
+      <div class="lb-time">${fmt(r.time)}</div>
+      <div class="lb-score">${r.score}</div>`;
+    box.appendChild(row);
+  });
+  if (allRows.length > TOP_N) {
+    const more = document.createElement('div');
+    more.className = 'lb-more';
+    more.innerHTML = `<button>${showAll ? '▲ Thu gọn' : `▼ Xem thêm (${allRows.length - TOP_N} người)`}</button>`;
+    box.appendChild(more);
+    more.querySelector('button').onclick = () => { showAll = !showAll; renderLeaderboard(); };
+  }
+}
+
+// ================= FULLSCREEN =================
+$('btn-full').onclick = () => {
+  if (document.fullscreenElement) { document.exitFullscreen && document.exitFullscreen(); return; }
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => toast('Không bật được toàn màn hình'));
+  } else {
+    toast('iPhone: Chia sẻ → Thêm vào Màn hình chính', 3000);
+  }
+};
+document.addEventListener('fullscreenchange', () => {
+  $('btn-full').textContent = document.fullscreenElement ? '🗗' : '⛶';
+  setTimeout(relayout, 150);
+});
+
+// ================= ORIENTATION / RESIZE =================
+$('btn-orient-ok').onclick = () => { if (pendingStart) beginRound(); else $('orient').classList.remove('show'); };
+window.addEventListener('resize', () => {
+  if (pendingStart && innerWidth > innerHeight) { beginRound(); return; }
+  relayout();
+});
+
+// ================= CELEBRATION =================
+function celebrate() {
+  const canvas = $('celebration');
+  canvas.style.display = 'block';
+  canvas.width = innerWidth; canvas.height = innerHeight;
+  const ctx = canvas.getContext('2d');
+  const parts = Array.from({length: 80}, () => ({
+    x: Math.random()*canvas.width, y: -20,
+    vx: (Math.random()-.5)*4, vy: Math.random()*3+2,
+    r: Math.random()*6+3, hue: Math.random()*360,
+    rot: Math.random()*Math.PI, rv: (Math.random()-.5)*.2
+  }));
+  let frame = 0;
+  (function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.rv; p.vy += .05;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = `hsl(${p.hue},90%,60%)`;
+      ctx.fillRect(-p.r, -p.r/2, p.r*2, p.r);
+      ctx.restore();
+    });
+    if (++frame < 120) requestAnimationFrame(draw);
+    else { ctx.clearRect(0, 0, canvas.width, canvas.height); canvas.style.display = 'none'; }
+  })();
+}
+</script>
+</body>
+</html>
